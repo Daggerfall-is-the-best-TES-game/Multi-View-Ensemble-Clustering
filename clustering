@@ -1,0 +1,31 @@
+import numpy as np
+
+
+def multiview_ensemble_clustering(partition_sets, cluster_num, lambda_1, lambda_2):
+    """Input: Basic partitions sets of m views,
+    cluster number K, two parameters lambda_1; lambda_2 > 0.
+    Output: The final clustering result ."""
+    #initialization
+    n = datapoint_num(partition_sets) # number of datapoints
+    m = view_num(partition_sets) # number of views
+    J, Z, A = 3 * [np.zeros(shape=(n, n))]
+    E, Y, = 2 * [np.zeros(shape=(n, n, m))]
+    H = np.zeros(shape=(n, cluster_num))
+    w = np.zeros(shape=(n, 1))
+    mu, mu_max, epsilon, t = 10e-3, 10e10, 10e-4, 0
+    #step 1
+
+
+
+def datapoint_num(partition_sets):
+    """input:a group of partitions
+    output:The number of datapoints in the dataset"""
+    #TODO: define this
+    pass
+
+
+def view_num(partition_sets):
+    """input:a group of partitions
+    output:The number of views of the dataset"""
+    # TODO: define this
+    pass
