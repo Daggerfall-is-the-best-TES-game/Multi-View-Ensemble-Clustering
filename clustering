@@ -18,14 +18,18 @@ def multiview_ensemble_clustering(partition_set_list, cluster_num, lambda_1, lam
     S = np.array([sum(partition @ partition.T for partition in partition_set) / len(partition_set) for partition_set in partition_set_list])
     # step 2
     while not_converged():
-        #step 3
+        # step 3
         J = singular_value_threshold(Z + A / mu, lambda_1 / mu)
-        #step 4
+        # step 4
         P = np.array([[norm(H[i] - H[j]) ** 2 for j in range(n)] for i in range(n)])
         eta = norm(P) ** 2 + (norm(S, axis=(1, 2)) ** 2).sum() + 1 + norm(n_ones) ** 2
         F = P / (2 * mu) + S.transpose(0, 2, 1) @ (S @ Z + E - S - H @ H.T - Y / mu).sum(axis=0) + (Z - J + A / mu) + (Z @ n_ones - n_ones + w / mu) @ np.atleast_2d(n_ones).T
         Z = Z - inv(eta) @ F
         Z[Z < 0] = 0
+        # step 5
+        E = singular_value_shrinkage(S + H @ H.T - S @ Z + Y / mu, lambda_2 / mu)
+        # step 6
+
 
 
 
