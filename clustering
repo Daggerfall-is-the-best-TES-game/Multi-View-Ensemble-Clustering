@@ -1,5 +1,5 @@
 import numpy as np
-
+from numpy.linalg import norm, inv
 
 def multiview_ensemble_clustering(partition_set_list, cluster_num, lambda_1, lambda_2):
     """Input: Basic partitions sets of m views,
@@ -13,9 +13,19 @@ def multiview_ensemble_clustering(partition_set_list, cluster_num, lambda_1, lam
     H = np.zeros(shape=(n, cluster_num))
     w = np.zeros(shape=(n, 1))
     mu, mu_max, epsilon, t = 10e-3, 10e10, 10e-4, 0
+    n_ones = np.ones(n)
     # step 1
-    S_v = np.array([sum(partition.dot(partition.transpose()) for partition in partition_set) / len(partition_set)
-                    for partition_set in partition_set_list])
+    S = np.array([sum(partition @ partition.T for partition in partition_set) / len(partition_set) for partition_set in partition_set_list])
+    # step 2
+    while not_converged():
+        #step 3
+        J = singular_value_threshold(Z + A / mu, lambda_1 / mu)
+        #step 4
+        P = np.array([[norm(H[i] - H[j]) ** 2 for j in range(n)] for i in range(n)])
+        eta = norm(P) ** 2 + (norm(S, axis=(1, 2)) ** 2).sum() + 1 + norm(n_ones) ** 2
+        F = P / (2 * mu) + S.transpose(0, 2, 1) @ (S @ Z + E - S - H @ H.T - Y / mu).sum(axis=0) + (Z - J + A / mu) + (Z @ n_ones - n_ones + w / mu) @ np.atleast_2d(n_ones).T
+        Z = Z - inv(eta) @ F
+        Z[Z < 0] = 0
 
 
 
@@ -29,9 +39,18 @@ def datapoint_num(partition_set_list):
 def view_num(partition_set_list):
     """input:a group of partitions
     output:The number of views of the dataset"""
-    # TODO: define this
     return len(partition_set_list)
 
 
 def kronecker_delta(i, j):
     return int(np.array_equal(i, j))
+
+def not_converged():
+    pass
+
+
+def singular_value_threshold(matrix, tau):
+    pass
+
+def singular_value_shrinkage(matrix, tau):
+    pass
