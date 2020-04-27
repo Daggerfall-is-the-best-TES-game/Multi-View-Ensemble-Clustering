@@ -1,21 +1,24 @@
 import numpy as np
-from numpy.linalg import norm, inv
+from numpy.linalg import norm, inv, eigh
 
 def multiview_ensemble_clustering(partition_set_list, cluster_num, lambda_1, lambda_2):
     """Input: Basic partitions sets of m views,
     cluster number K, two parameters lambda_1; lambda_2 > 0.
     Output: The final clustering result ."""
     # initialization
-    n = datapoint_num(partition_set_list) # number of datapoints
-    m = view_num(partition_set_list) # number of views
+    n = datapoint_num(partition_set_list)  # number of datapoints
+    m = view_num(partition_set_list)  # number of views
     J, Z, A = 3 * [np.zeros(shape=(n, n))]
+    D = np.diag(np.sum(Z, axis=1))
+    L = D - Z
     E, Y, = 2 * [np.zeros(shape=(n, n, m))]
     H = np.zeros(shape=(n, cluster_num))
     w = np.zeros(shape=(n, 1))
     mu, mu_max, epsilon, t = 10e-3, 10e10, 10e-4, 0
     n_ones = np.ones(n)
     # step 1
-    S = np.array([sum(partition @ partition.T for partition in partition_set) / len(partition_set) for partition_set in partition_set_list])
+    S = np.array([sum(partition @ partition.T for partition in partition_set) / len(partition_set) for partition_set in
+                  partition_set_list])
     # step 2
     while not_converged():
         # step 3
@@ -23,12 +26,18 @@ def multiview_ensemble_clustering(partition_set_list, cluster_num, lambda_1, lam
         # step 4
         P = np.array([[norm(H[i] - H[j]) ** 2 for j in range(n)] for i in range(n)])
         eta = norm(P) ** 2 + (norm(S, axis=(1, 2)) ** 2).sum() + 1 + norm(n_ones) ** 2
-        F = P / (2 * mu) + S.transpose(0, 2, 1) @ (S @ Z + E - S - H @ H.T - Y / mu).sum(axis=0) + (Z - J + A / mu) + (Z @ n_ones - n_ones + w / mu) @ np.atleast_2d(n_ones).T
+        F = P / (2 * mu) + S.transpose(0, 2, 1) @ (S @ Z + E - S - H @ H.T - Y / mu).sum(axis=0) + (Z - J + A / mu) + (
+                    Z @ n_ones - n_ones + w / mu) @ np.atleast_2d(n_ones).T
         Z = Z - inv(eta) @ F
         Z[Z < 0] = 0
         # step 5
         E = singular_value_shrinkage(S + H @ H.T - S @ Z + Y / mu, lambda_2 / mu)
         # step 6
+        D = np.diag(np.sum(Z, axis=1))
+        L = D - Z
+        # step 7
+        _, H = eigh(L)[:cluster_num, :]
+        # step 8
 
 
 
