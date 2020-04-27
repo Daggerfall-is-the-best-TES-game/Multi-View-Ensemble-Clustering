@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.linalg import norm, inv, eigh
 
+
 def multiview_ensemble_clustering(partition_set_list, cluster_num, lambda_1, lambda_2):
     """Input: Basic partitions sets of m views,
     cluster number K, two parameters lambda_1; lambda_2 > 0.
@@ -16,11 +17,13 @@ def multiview_ensemble_clustering(partition_set_list, cluster_num, lambda_1, lam
     w = np.zeros(shape=(n, 1))
     mu, mu_max, epsilon, t = 10e-3, 10e10, 10e-4, 0
     n_ones = np.ones(n)
+    rho = 2
     # step 1
     S = np.array([sum(partition @ partition.T for partition in partition_set) / len(partition_set) for partition_set in
                   partition_set_list])
     # step 2
-    while not_converged():
+    converged = False
+    while not converged:
         # step 3
         J = singular_value_threshold(Z + A / mu, lambda_1 / mu)
         # step 4
@@ -38,6 +41,18 @@ def multiview_ensemble_clustering(partition_set_list, cluster_num, lambda_1, lam
         # step 7
         _, H = eigh(L)[:cluster_num, :]
         # step 8
+        delta = S + H @ H.T - S @ Z - E
+        Y += mu * delta
+        A += mu * (Z - J)
+        w += mu * (Z @ n_ones - n_ones)
+        # step 9
+        converged = max(max(norm(delta, axis=(1, 2), ord=np.inf)),
+                        norm(J - Z, ord=np.inf),
+                        norm(Z @ n_ones - n_ones, ord=np.inf)) < epsilon
+        # step 10
+        mu = min(rho * mu, mu_max)
+        t += 1
+    # step 12
 
 
 
@@ -58,7 +73,7 @@ def view_num(partition_set_list):
 def kronecker_delta(i, j):
     return int(np.array_equal(i, j))
 
-def not_converged():
+def has_converged():
     pass
 
 
