@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.linalg import norm, inv, eigh
-
+from sklearn.cluster import KMeans
 
 def multiview_ensemble_clustering(partition_set_list, cluster_num, lambda_1, lambda_2):
     """Input: Basic partitions sets of m views,
@@ -17,7 +17,7 @@ def multiview_ensemble_clustering(partition_set_list, cluster_num, lambda_1, lam
     w = np.zeros(shape=(n, 1))
     mu, mu_max, epsilon, t = 10e-3, 10e10, 10e-4, 0
     n_ones = np.ones(n)
-    rho = 2
+    rho = 1.1
     # step 1
     S = np.array([sum(partition @ partition.T for partition in partition_set) / len(partition_set) for partition_set in
                   partition_set_list])
@@ -53,6 +53,7 @@ def multiview_ensemble_clustering(partition_set_list, cluster_num, lambda_1, lam
         mu = min(rho * mu, mu_max)
         t += 1
     # step 12
+    return KMeans(n_clusters=cluster_num).fit(H)
 
 
 
